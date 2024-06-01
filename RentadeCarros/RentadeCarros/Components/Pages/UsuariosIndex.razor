@@ -1,0 +1,74 @@
+﻿@page "/usuarios"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioUsuarios _repositorio;
+<h3>Usuarios</h3>
+<a class="btn btn-success" href="usuarios/nuevo">Agregar usuario</a>
+@if (_usuarios == null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else if(_usuarios.Count == 0)
+{
+    <h3>No existen usuarios registrados</h3>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Numero Telefonico</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Usuarios usuario in _usuarios)
+            {
+                <tr>
+                    <td>@usuario.Id</td>
+                    <td>@usuario.Nombre</td>
+                    <td>@usuario.Correo</td>
+                    <td>@usuario.NumTelefonico</td>
+                    <td>
+                        <button class="btn btn-sm" title="Modificar" @onclick="()=>Modificar(usuario.Id)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-"></path>
+                            </svg>
+                        </button>
+                        <button class="btn btn-sm" title="Eliminar" @onclick="()=>Eliminar(usuario)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v.1A1.5 1.5.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0"></path>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Usuarios>? _usuarios;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _usuarios = await _repositorio.GetAll();
+    }
+
+    private async void Eliminar(Usuarios usuario)
+    {
+        await _repositorio.Delete(usuario.Id);
+        _usuarios!.Remove(usuario);
+        StateHasChanged();
+    }
+
+    private void Modificar(int id)
+    {
+        _navigator.NavigateTo($"/usuarios/editar/{id}");
+    }
+}

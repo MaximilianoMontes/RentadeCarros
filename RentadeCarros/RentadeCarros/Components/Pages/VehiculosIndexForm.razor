@@ -1,0 +1,71 @@
+﻿@page "/vehiculo/nuevo"
+@page "/vehiculo/editar/{Id:int}"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioVehiculo _repositorio;
+
+<h2>Carga de datos</h2>
+
+<EditForm Model="_vehiculo" FormName="vehiculo" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="row mb-3">
+        <label class="col-2 col-form-label">Marca</label>
+        <div class="col-10">
+            <InputText class="form-control" @bind-Value="_vehiculo.Marca" />
+            <ValidationMessage For="()=>_vehiculo.Marca" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label class="col-2 col-form-label">Modelo</label>
+        <div class="col-10">
+            <InputText class="form-control" @bind-Value="_vehiculo.Modelo" />
+            <ValidationMessage For="()=>_vehiculo.Modelo" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label class="col-2 col-form-label">Año</label>
+        <div class="col-10">
+            <InputNumber class="form-control" @bind-Value="_vehiculo.Año" />
+            <ValidationMessage For="()=>_vehiculo.Año" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private string _mensaje = "";
+    private Vehiculos? _vehiculo = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id > 0)
+        {
+            _vehiculo = await _repositorio.Get(Id);
+            _mensaje = "Modificar";
+        }
+        else
+        {
+            _mensaje = "Nueva";
+        }
+    }
+    private async void Guardar()
+    {
+        if (Id > 0)
+        {
+            await _repositorio.Update(Id, _vehiculo!);
+        }
+        else
+        {
+            await _repositorio.Add(_vehiculo!);
+        }
+        Cancelar();
+    }
+    private void Cancelar()
+    {
+        _navigator.NavigateTo("/vehiculos");
+    }
+}
+
+    

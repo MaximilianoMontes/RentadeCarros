@@ -1,0 +1,78 @@
+﻿@page "/reservaciones"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioReservaciones _repositorio;
+<h2>RentAcar Reservas</h2>
+
+<button type="button" class="btn btn-primary" @onclick="Agregar" @onclick:preventDefault>Agregar</button>
+
+@if (_Reserva == null)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else if (_Reserva.Count == 0)
+{
+    <h3>No hay Reservas</h3>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Vehiculo</th>
+                <th>Fechainicioreserva</th>
+                <th>Fechafinalreserva</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Reservaciones reservas in _Reserva)
+            {
+                <tr>
+                    <td>@reservas.Usuarios.Nombre</td>
+                    <td>@reservas.Vehiculos.Marca @reservas.Vehiculos.Modelo</td>
+                    <td>@reservas.Fechainicioreserva</td>
+                    <td>@reservas.Fechafinalreserva</td>
+                    <td>
+                        <button class="btn btn-danger" @onclick="() => Eliminar(reservas)">Eliminar</button>
+                        <button class="btn btn-secondary" @onclick="() => Modificar(reservas.Id)">Modificar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private List<Reservaciones>? _Reserva;
+    private List<Usuarios>? _usuarios = new();
+    private List<Vehiculos>? _vehiculos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _usuarios = await _repositorio.GetUsuarios();
+        _vehiculos = await _repositorio.GetVehiculos();
+        _Reserva = await _repositorio.GetAll();
+    }
+
+    private async void Eliminar(Reservaciones reservas)
+    {
+
+        await _repositorio.Delete(reservas.Id);
+        _Reserva!.Remove(reservas);
+        StateHasChanged();
+    }
+
+    private void Modificar(int id)
+    {
+        _navigator.NavigateTo($"/reservaciones/editar/{id}");
+    }
+
+    private void Agregar()
+    {
+        _navigator.NavigateTo("/reservaciones/nuevo");
+    }
+}

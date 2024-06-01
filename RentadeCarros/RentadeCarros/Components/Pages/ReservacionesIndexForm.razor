@@ -1,0 +1,97 @@
+﻿@page "/reservaciones/nuevo"
+@page "/reservaciones/editar/{id:int}"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioReservaciones _repositorio;
+
+<h2>Carga de datos</h2>
+
+<EditForm Model="_Reservas" FormName="reservas" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="row mb-3">
+        <lable class="col-sm-2 col-form-label">Usuarios</lable>
+        <div class="col-sm-10">
+            <InputSelect class="form-select" @bind-Value="_Reservas.UsuariosId" >
+                <option value="" selected>Seleccione un Usuario...</option>
+                @foreach(Usuarios usuario in _usuarios)
+                {
+                    <option value="@usuario.Id">@usuario.Nombre</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="() => _Reservas.UsuariosId" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <lable class="col-sm-2 col-form-label">Vehiculo</lable>
+        <div class="col-sm-10">
+            <InputSelect class="form-select" @bind-Value="_Reservas.VehiculosId">
+                <option value="" selected>Seleccione un Vehiculo...</option>
+                @foreach (Vehiculos vehiculo in _vehiculos)
+                {
+                    <option value="@vehiculo.Id">@vehiculo.Marca @vehiculo.Modelo</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="() => _Reservas.VehiculosId" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <lable class="col-sm-2 col-form-label">Fecha inicio reservas</lable>
+        <div class="col-sm-10">
+            <InputDate class="form-control" @bind-Value="_Reservas.Fechainicioreserva" />
+            <ValidationMessage For="() => _Reservas.Fechainicioreserva" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <lable class="col-sm-2 col-form-label">Fecha final reservas</lable>
+        <div class="col-sm-10">
+            <InputDate class="form-control" @bind-Value="_Reservas.Fechafinalreserva" />
+            <ValidationMessage For="() => _Reservas.Fechafinalreserva" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private string _mensaje = "";
+    private Reservaciones? _Reservas = new();
+    private List<Usuarios> _usuarios = new();
+    private List<Vehiculos> _vehiculos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _usuarios = await _repositorio.GetUsuarios();
+        _vehiculos = await _repositorio.GetVehiculos();
+        if (Id != 0)
+        {
+            _Reservas = await _repositorio.Get(Id);
+            _mensaje = "Editar";
+        }
+        else
+        {
+            _mensaje = "Nueva";
+        }
+    }
+
+    private async void Guardar()
+    {
+        if (Id != 0)
+        {
+            await _repositorio.Update(Id, _Reservas);
+        }
+        else
+        {
+            await _repositorio.Add(_Reservas!);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigator.NavigateTo("/reservaciones");
+    }
+
+}

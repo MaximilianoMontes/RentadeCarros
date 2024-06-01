@@ -1,0 +1,72 @@
+﻿@page "/vehiculos"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioVehiculo _repositorio;
+<h2>Vehiculo</h2>
+
+<button type="button" class="btn btn-primary" @onclick="Agregar" @onclick:preventDefault>Agregar</button>
+
+@if (_vehiculo == null)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else if (_vehiculo.Count == 0)
+{
+    <h3>No hay Vehiculos</h3>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Año</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Vehiculos vehiculos in _vehiculo)
+            {
+                <tr>
+                    <td>@vehiculos.Id</td>
+                    <td>@vehiculos.Marca</td>
+                    <td>@vehiculos.Modelo</td>
+                    <td>@vehiculos.Año</td>
+
+                    <td>
+                        <button class="btn btn-danger" @onclick="() => Eliminar(vehiculos)">Eliminar</button>
+                        <button class="btn btn-secondary" @onclick="() => Modificar(vehiculos.Id)">Modificar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    private List<Vehiculos>? _vehiculo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _vehiculo = await _repositorio.GetAll();
+    }
+
+    private async void Eliminar(Vehiculos vehiculo)
+    {
+        await _repositorio.Delete(vehiculo.Id);
+        _vehiculo!.Remove(vehiculo);
+        StateHasChanged();
+    }
+
+    private void Modificar(int id)
+    {
+        _navigator.NavigateTo($"/vehiculo/editar/{id}");
+    }
+
+    private void Agregar()
+    {
+        _navigator.NavigateTo("/vehiculo/nuevo");
+    }
+}
